@@ -1,9 +1,10 @@
 import sys
- 
+
 import pygame
 from pygame.locals import *
 
 from game import detectwin, playmove
+from ai import random_ai, win_and_block_ai
 
 def drawtext(text,pos,color=(0,0,0)):
     surface=sans.render(text,False,color)
@@ -31,6 +32,11 @@ rects=[]
 for x in range(len(board)):
     rects.append(pygame.rect.Rect(30 + ((board_width*x)/len(board)), 0, board_width/len(board),height))
 
+# 1 is player, 1< is ai
+players=[1,2]
+random=random_ai(2)
+win_and_block=win_and_block_ai(2)
+
 turn=0
 
 won=False
@@ -46,17 +52,27 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if won:
                 board=[[0 for _ in range(6)] for _ in range(7)]
-            else:
+            elif players[turn] == 1:
                 x, y = pygame.mouse.get_pos() # Get click position
                 for index, collision in enumerate(rects):
                     if collision.collidepoint(x,y):
-                        print("Click collides with",index)
+                        # print("Click collides with",index)
                         temp_board, valid = playmove(board,index,turn+1)
                         if valid:
-                            print("Move is valid")
+                            # print("Move is valid")
                             board=temp_board
                             turn=1-turn
-
+    cur_player=players[turn]
+    if cur_player == 2:
+        ai_move=win_and_block.getmove(board)
+        temp_board, valid=playmove(board,ai_move,turn+1)
+        while not valid:
+            print("not valid")
+            ai_move=random.getmove(board)
+            temp_board, valid = playmove(board,ai_move,turn+1)
+        board=temp_board
+        turn=1-turn
+    
     # Draw background
     screen.fill((0,0,0))
     pygame.draw.rect(screen,(0,0,255),board_rect)
