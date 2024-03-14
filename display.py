@@ -4,7 +4,7 @@ import pygame
 from pygame.locals import *
 
 from game import detectwin, playmove
-from ai import random_ai, win_and_block_ai
+from ai import random_ai, win_and_block_ai, block_two_ai
 
 def drawtext(text,pos,color=(0,0,0)):
     surface=sans.render(text,False,color)
@@ -33,9 +33,10 @@ for x in range(len(board)):
     rects.append(pygame.rect.Rect(30 + ((board_width*x)/len(board)), 0, board_width/len(board),height))
 
 # 1 is player, 1< is ai
-players=[1,2]
+players=[2,3]
 random=random_ai(2)
 win_and_block=win_and_block_ai(2)
+block_two=block_two_ai(2)
 
 turn=0
 
@@ -62,9 +63,21 @@ while True:
                             # print("Move is valid")
                             board=temp_board
                             turn=1-turn
+    
     cur_player=players[turn]
-    if cur_player == 2:
+    if cur_player == 2 and not won:
+        print("Ai 1 running")
         ai_move=win_and_block.getmove(board)
+        temp_board, valid=playmove(board,ai_move,turn+1)
+        while not valid:
+            print("not valid")
+            ai_move=random.getmove(board)
+            temp_board, valid = playmove(board,ai_move,turn+1)
+        board=temp_board
+        turn=1-turn
+    elif cur_player == 3 and not won:
+        print("Ai 2 running")
+        ai_move=block_two.getmove(board)
         temp_board, valid=playmove(board,ai_move,turn+1)
         while not valid:
             print("not valid")
