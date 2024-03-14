@@ -18,7 +18,7 @@ pygame.font.init()
 
 sans = pygame.font.SysFont('Comic Sans MS', 30)
 
-fps = 10
+fps = 48
 fpsClock = pygame.time.Clock()
 
 width, height = 600, 500
@@ -33,7 +33,7 @@ for x in range(len(board)):
     rects.append(pygame.rect.Rect(30 + ((board_width*x)/len(board)), 0, board_width/len(board),height))
 
 # 1 is player, 1< is ai
-players=[2,3]
+players=[1,3]
 random=random_ai(2)
 win_and_block=win_and_block_ai(2)
 block_two=block_two_ai(2)
@@ -41,31 +41,40 @@ block_two=block_two_ai(2)
 turn=0
 
 won=False
+wins=[0,0,0]
+
+moves=0
 
 while True:
     screen.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == QUIT:
+            print(f"Draws: {wins[0]}\nPlayer 1: {wins[1]}\nPlayer 2: {wins[2]}")
             pygame.quit()
             sys.exit()
             
         if event.type == pygame.MOUSEBUTTONDOWN:
             if won:
+                wins[winner]+=1
                 board=[[0 for _ in range(6)] for _ in range(7)]
             elif players[turn] == 1:
                 x, y = pygame.mouse.get_pos() # Get click position
+                print("")
                 for index, collision in enumerate(rects):
                     if collision.collidepoint(x,y):
-                        # print("Click collides with",index)
+                        moves=0
+                        print("Click collides with",index)
                         temp_board, valid = playmove(board,index,turn+1)
                         if valid:
-                            # print("Move is valid")
+                            print("Move is valid")
                             board=temp_board
                             turn=1-turn
     
     cur_player=players[turn]
     if cur_player == 2 and not won:
+        moves+=1
+        print("")
         print("Ai 1 running")
         ai_move=win_and_block.getmove(board)
         temp_board, valid=playmove(board,ai_move,turn+1)
@@ -73,9 +82,13 @@ while True:
             print("not valid")
             ai_move=random.getmove(board)
             temp_board, valid = playmove(board,ai_move,turn+1)
+        print("AI's move:",ai_move)
         board=temp_board
         turn=1-turn
+        
     elif cur_player == 3 and not won:
+        moves+=1
+        print("")
         print("Ai 2 running")
         ai_move=block_two.getmove(board)
         temp_board, valid=playmove(board,ai_move,turn+1)
@@ -83,6 +96,7 @@ while True:
             print("not valid")
             ai_move=random.getmove(board)
             temp_board, valid = playmove(board,ai_move,turn+1)
+        print("AI's move:",ai_move)
         board=temp_board
         turn=1-turn
     
@@ -103,6 +117,9 @@ while True:
             else:
                 cur_color=(255,255,255)
             pygame.draw.circle(screen,cur_color,(cur_x,cur_y),30)
+
+    #display debug
+    drawtext(f"AI moves in a row: {moves}",(100,100))
 
     won, winner = detectwin(board)
     if won:

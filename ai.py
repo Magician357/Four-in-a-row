@@ -1,10 +1,12 @@
 from random import randint
+from game import playmove, detectwin
 
 class random_ai:
     def __init__(self,number):
         self.number=number
         
     def getmove(self,board):
+        print("generating random move")
         return randint(0,len(board)-1)
 
 class win_and_block_ai(random_ai):
@@ -30,7 +32,10 @@ class win_and_block_ai(random_ai):
                     elif slot == 0:
                         empty_index = i
                 if count == 3 and empty_index != None:
-                    return True, column_index+empty_index
+                    test_board,_ = playmove(board,column_index+empty_index,3-number)
+                    detecting_win, whowon=detectwin(test_board)
+                    if detecting_win and whowon == 3-number:
+                        return True, column_index+empty_index
         
         return False, 0
     
@@ -47,7 +52,7 @@ class win_and_block_ai(random_ai):
             return index
 
         print("no 3 found")
-        return super().getmove(board)
+        return randint(0,len(board)-1)
     
 
 class block_two_ai(win_and_block_ai):
@@ -107,4 +112,5 @@ class block_two_ai(win_and_block_ai):
             print("2 for enemy detected")
             return index
         
+        print("no two found")
         return randint(0,len(board)-1)

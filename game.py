@@ -50,7 +50,13 @@ def detectwin(board, win_length=4):
             if detectsame([board[i-a][j-a] for a in range(win_length)]) and board[i][j] != 0:
                 return True, board[i][j]
     
-    return False, 0
+    # detecting draw:
+    drawed=True
+    for column in board:
+        if 0 in column:
+            drawed=False
+    
+    return drawed, 0
 
 def printboard(board):
     c=""
