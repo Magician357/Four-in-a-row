@@ -1,23 +1,25 @@
 def playmove(board,column,player):
-    temp_column=board[column]
+    temp_column=list(board[column])
     move_played=False
     for index, space in enumerate(temp_column):
         if space != 0:
             if index == 0:
-                break # no valid moves
+                print("Move not played: no space")
+                break
             else:
-                # print("move is valid")
+                print("Move played: top at",column,"for",player)
                 move_played=True
                 temp_column[index-1]=player
                 break
         elif index == len(temp_column)-1:
-            # print("move is valid")
+            print("Move played: bottom at",column,"for",player)
             move_played=True
             temp_column[index]=player
             break
             
-    board[column]=temp_column
-    return board, move_played
+    board_copy=list(board)
+    board_copy[column]=temp_column
+    return board_copy, move_played
 
 def detectsame(list):
     return len(set(list)) == 1
@@ -62,15 +64,21 @@ def printboard(board):
     c=""
     for y in range(len(board[0])):
         for x in range(len(board)):
-            c+=str(board[x][y])+" | "
+            c+=(" " if board[x][y] == 0 else str(board[x][y]))+" | "
         c+="\n"
     c+="---------------------------\n1 | 2 | 3 | 4 | 5 | 6 | 7 |"
     print(c)
 
 if __name__ == "__main__":
+    from ai import block_two_ai
+    
+    ai=block_two_ai(2)
+    
+    
     board=[[0 for _ in range(6)] for _ in range(7)]
     turn=0
-    while not detectwin(board):
+    playing=True
+    while playing:
         printboard(board)
         print("Turn:",turn+1)
         choice=int(input("what space? "))-1
@@ -78,5 +86,13 @@ if __name__ == "__main__":
         if valid:
             board=temp_board
             turn=1-turn
+            
+            move=ai.getmove(board)
+            board, _ = playmove(board,move,turn+1)
+            turn=1-turn
+            
+            won, winner = detectwin(board)
+            if won and winner != 0:
+                playing=False
     printboard(board)
     print(detectwin(board)[1],"Wins!")

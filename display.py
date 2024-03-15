@@ -4,7 +4,7 @@ import pygame
 from pygame.locals import *
 
 from game import detectwin, playmove
-from ai import random_ai, win_and_block_ai, block_two_ai
+from ai import random_ai, win_and_block_ai, block_two_ai, brute_force_single
 
 def drawtext(text,pos,color=(0,0,0)):
     surface=sans.render(text,False,color)
@@ -21,10 +21,10 @@ sans = pygame.font.SysFont('Comic Sans MS', 30)
 fps = 48
 fpsClock = pygame.time.Clock()
 
-width, height = 600, 500
+width, height = 600, 700
 screen = pygame.display.set_mode((width, height))
 
-board_width, board_height = width-60, height-70
+board_width, board_height = 540, 430
 board_rect=pygame.rect.Rect(30,30,board_width, board_height+10)
 
 #create rects for each column
@@ -33,23 +33,27 @@ for x in range(len(board)):
     rects.append(pygame.rect.Rect(30 + ((board_width*x)/len(board)), 0, board_width/len(board),height))
 
 # 1 is player, 1< is ai
-players=[1,3]
+players=[1,1]
 random=random_ai(2)
 win_and_block=win_and_block_ai(2)
 block_two=block_two_ai(2)
+brute_force=brute_force_single(2)
 
 turn=0
 
-won=False
+won=True
 wins=[0,0,0]
 
 moves=0
+
+stop_between=False
 
 while True:
     screen.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == QUIT:
+            wins[winner]+=1
             print(f"Draws: {wins[0]}\nPlayer 1: {wins[1]}\nPlayer 2: {wins[2]}")
             pygame.quit()
             sys.exit()
@@ -73,6 +77,7 @@ while True:
     
     cur_player=players[turn]
     if cur_player == 2 and not won:
+        win_and_block.number=turn+1
         moves+=1
         print("")
         print("Ai 1 running")
@@ -87,6 +92,7 @@ while True:
         turn=1-turn
         
     elif cur_player == 3 and not won:
+        block_two.number=turn+1
         moves+=1
         print("")
         print("Ai 2 running")
@@ -100,6 +106,16 @@ while True:
         board=temp_board
         turn=1-turn
     
+    elif cur_player == 4 and not won:
+        brute_force.number=turn+1
+        moves+=1
+        print("")
+        print("Ai 3 running")
+        ai_move=brute_force.getmove(board)
+        board, _ = playmove(board,ai_move,turn+1)
+        print("AI's move:",ai_move)
+        turn=1-turn
+        
     # Draw background
     screen.fill((0,0,0))
     pygame.draw.rect(screen,(0,0,255),board_rect)
@@ -119,11 +135,18 @@ while True:
             pygame.draw.circle(screen,cur_color,(cur_x,cur_y),30)
 
     #display debug
-    drawtext(f"AI moves in a row: {moves}",(100,100))
+    # drawtext(f"AI moves in a row: {moves}",(100,100))
 
     won, winner = detectwin(board)
     if won:
-        drawtext(f"{winner} Wins!!!!",(width/2,height/2))
+        drawtext(f"{winner} Wins!!!!",(230,500),(255,255,255))
+        if not stop_between:
+            wins[winner]+=1
+            board=[[0 for _ in range(6)] for _ in range(7)]
+
+    drawtext("Turn:",(50,600),(255,255,255))
+    pygame.draw.circle(screen,(255,255 if turn == 1 else 0, 0),(160,625),30)
+    drawtext(str(turn+1),(150,600))
 
     pygame.display.flip()
     fpsClock.tick(fps)
